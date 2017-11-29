@@ -4,18 +4,6 @@ function check_command() {
     type $1 >/dev/null 2>&1
 }
 
-function check_user_mode() {
-    local jupyter=$(type -p jupyter 2>/dev/null)
-
-    if [[ "$jupyter" == '' ]]; then
-        return 1
-    elif [[ "$jupyter" =~ ^$HOME ]]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
 function get_ocaml_version() {
     if check_command opam; then
         opam config var switch
@@ -54,22 +42,14 @@ function install() {
             create > "$datadir/kernel.json"
         fi
 
-        if check_user_mode; then
-            jupyter kernelspec install --user $install_flags "$datadir"
-        else
-            sudo jupyter kernelspec install $install_flags "$datadir"
-        fi
+        echo jupyter kernelspec install --user $install_flags "$datadir"
     fi
 }
 
 function uninstall() {
     if check_command jupyter; then
         if jupyter kernelspec list | grep "$KERNEL_NAME" >/dev/null; then
-            if check_user_mode; then
-                jupyter kernelspec remove "$KERNEL_NAME" -f
-            else
-                sudo jupyter kernelspec remove "$KERNEL_NAME" -f
-		    fi
+            echo jupyter kernelspec remove "$KERNEL_NAME" -f
         else
             echo "[ERROR] kernelspec $KERNEL_NAME is not install"
         fi
